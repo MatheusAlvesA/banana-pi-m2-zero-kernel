@@ -75,6 +75,8 @@ sudo dd if=u-boot-sunxi-with-spl.bin \
 
 Agora copie o conteúdo da pasta boot desse projeto para a partição `main` do SDCard  
 essa pasta contém a device tree e também o kernel linux compilado.  
+Também copie o conteúdo da pasta sbin desse projeto para a partição `main` do SDCard  
+essa pasta contém o programa que o Kernel linux vai executar.  
 
 Com isso feito, basta colocar o SDCard e observe a placa dar boot no Kernel linux.
 
@@ -125,4 +127,14 @@ cp arch/arm/boot/dts/allwinner/sun8i-h2-plus-bananapi-m2-zero.dtb ../boot/dtb/
 ```
 
 Esses comandos substituem a imagem e a device tree fornecidas no projeto. Depois, copie os arquivos atualizados para os mesmos locais no SDCard usados pelo script de boot.
+
+
+# Init Program
+
+O Kernel busca por um executável em /sbin/init, se achar executa ela com PDID=1, esse programa nunca pode retornar, se o fizer vai causar Kernel Panic.  
+Você pode editar e reompilar o init desse projeto, para isso entre na pasta `sbin` modifique o init.c e execute:
+```sh
+arm-linux-gnueabihf-gcc -static -Os -s init.c -o init
+```
+Perceba que o `-static` está presente, ele é necessário, já que nosso sistema de arquivos não tem nenhuma lib disponível para usar.
 
