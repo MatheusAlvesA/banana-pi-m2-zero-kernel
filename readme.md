@@ -80,8 +80,8 @@ Com isso feito, basta colocar o SDCard e observe a placa dar boot no Kernel linu
 
 # O Kernel
 
-Essa etapa é totalmente opcional visto que a pasta /boot já contém uma build do kernel e a device tree  
-mas se mesmo assim você quer fazer o processo completo, comece baixando o kernel e buildando a device tree:  
+Essa etapa é opcional, pois a pasta `boot/` do projeto já contém uma imagem do kernel e a device tree. Para compilar sua própria versão, baixe o código do Linux a partir da raiz deste projeto e configure a arquitetura ARM:
+
 ```sh
 git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
 cd linux/
@@ -89,7 +89,44 @@ git checkout v7.2
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabihf-
 make sunxi_defconfig
-make allwinner/sun8i-h2-plus-bananapi-m2-zero.dtb
 ```
-Então copie o arquivo em `linux/arch/arm/boot/dts/allwinner/sun8i-h2-plus-bananapi-m2-zero.dtb` para `boot/dtb`  
-Com isso, agora você tem uma device tree que descreve o hardware construida e pronta para usar.
+
+Para exibir as mensagens do kernel pelo HDMI, habilite a emulação de framebuffer do DRM e o console de texto:
+
+```sh
+./scripts/config --enable DRM_FBDEV_EMULATION \
+                 --enable FRAMEBUFFER_CONSOLE \
+                 --enable DRM_CLIENT_DEFAULT_FBDEV
+```
+
+Configure também uma reserva de 128 MiB de CMA, a memória contígua usada, entre outras coisas, pelos buffers gráficos. No teste desta build na Banana Pi M2 Zero, o vídeo só funcionou após aumentar a reserva padrão de 16 MiB para 128 MiB:
+
+```sh
+./scripts/config --enable CMA \
+                 --enable DMA_CMA \
+                 --set-val CMA_SIZE_MBYTES 128 \
+                 --enable CMA_SIZE_SEL_MBYTES \
+                 --disable CMA_SIZE_SEL_PERCENTAGE \
+                 --disable CMA_SIZE_SEL_MIN \
+                 --disable CMA_SIZE_SEL_MAX
+
+make olddefconfig
+```
+
+Os 128 MiB serão o padrão compilado; não é necessário adicionar `cma=128M` aos argumentos de boot. Caso exista um argumento `cma=...`, ele terá prioridade sobre esse padrão.
+
+Agora compile o kernel e a device tree da placa, mantendo as variáveis `ARCH` e `CROSS_COMPILE` exportadas acima. Não execute `make sunxi_defconfig` novamente depois dos ajustes, pois isso substituiria a configuração:
+
+```sh
+make -j"$(nproc)" zImage allwinner/sun8i-h2-plus-bananapi-m2-zero.dtb
+```
+
+Ainda dentro da pasta `linux/`, copie os arquivos gerados para a pasta `boot/` do projeto:
+
+```sh
+cp arch/arm/boot/zImage ../boot/zImage
+cp arch/arm/boot/dts/allwinner/sun8i-h2-plus-bananapi-m2-zero.dtb ../boot/dtb/
+```
+
+Esses comandos substituem a imagem e a device tree fornecidas no projeto. Depois, copie os arquivos atualizados para os mesmos locais no SDCard usados pelo script de boot.
+
