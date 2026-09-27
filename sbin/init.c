@@ -10,6 +10,7 @@
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 static void mount_virtual_fs(const char *path, const char *type, mode_t mode)
@@ -222,6 +223,23 @@ done:
     close(fd);
 }
 
+static void start_program(void)
+{
+    if (access("/bin/start", F_OK) == -1) {
+        return;
+    }
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        perror("fork /bin/start");
+    } else if (pid == 0) {
+        puts("Binario /bin/start encontrado, iniciando...");
+        execl("/bin/start", "/bin/start", (char *)NULL);
+        perror("exec /bin/start");
+        _exit(127);
+    }
+}
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -231,8 +249,16 @@ int main(void)
     print_hardware_info();
     print_random_number();
     draw_purple_rectangle();
+    start_program();
 
     for (;;) {
-        pause();
+        if (wait(NULL) == -1) {
+            if (errno == EINTR)
+                continue;
+            if (errno != ECHILD)
+                perror("wait");
+            /* Sem filhos, evite consumir CPU enquanto mantem o init vivo. */
+            sleep(1);
+        }
     }
 }

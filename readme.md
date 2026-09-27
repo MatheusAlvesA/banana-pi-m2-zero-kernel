@@ -153,3 +153,11 @@ Você pode editar e recompilar o init desse projeto, para isso entre na pasta `s
 arm-linux-gnueabihf-gcc -static -Os -s init.c -o init
 ```
 Perceba que o `-static` está presente, ele é necessário, já que nosso sistema de arquivos não tem nenhuma lib disponível para usar.
+
+
+# Start Program
+
+Na pasta `bin` existe um programa chamado start.c. O programa init automaticamente procura por um executável em /bin/start e o executa se encontrar.  
+Dessa forma, se quiser escrever um programa customizado sem precisar lidar com a inicialização do linux, apenas modifique, faça a build e então  
+copie a pasta bin para o cartão de memória. Essa etapa é totalmente opcioanl, na pasta do projeto já existe um programa básico para servir de placeholder.
+
