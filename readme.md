@@ -62,20 +62,26 @@ sudo parted --script /dev/sdX \
 sudo partprobe /dev/sdX
 sudo udevadm settle
 sudo mkfs.ext4 -L main /dev/sdXp1
+
+sudo mount -o remount,rw /dev/sdXp1
+sudo chown user:user /run/media/user/main
 ```
-Substitua o sdX pela label do dispositivo na sua máquina.  
+Substitua o `sdX` pela label do dispositivo na sua máquina. e `user` pelo seu usuário.  
+Esse processo deve fazer com que seu SDCard agora tenha cerca de 100MB não utilizados no inicio, seguido de uma única partição bootavel ext4.  
+Confira se ficou correto, experimente executar os comandos 1 a 1 para garantir.  
 
 O processador do Banana Pi, Allwinner H3, procura pelo bootloader no SDCard,  
-específicamente no endereço 8000, ou seja a partir do oitavo kilo byte.
+específicamente no endereço 8000, ou seja a partir do oitavo kilo byte.  
+Vamos gravar o bootloader nesse endereço diretamente, por isso reservamos os 100mb.  
 ```sh
 sudo dd if=u-boot-sunxi-with-spl.bin \
     of=/dev/sdX \
     bs=1k seek=8
 ```
 
-Agora copie o conteúdo da pasta boot desse projeto para a partição `main` do SDCard  
+Agora copie a pasta `boot` desse projeto para a partição `main` do SDCard  
 essa pasta contém a device tree e também o kernel linux compilado.  
-Também copie o conteúdo da pasta sbin desse projeto para a partição `main` do SDCard  
+Também copie a pasta `sbin` desse projeto para a partição `main` do SDCard  
 essa pasta contém o programa que o Kernel linux vai executar.  
 
 Com isso feito, basta colocar o SDCard e observe a placa dar boot no Kernel linux.
@@ -141,8 +147,8 @@ Esses comandos substituem a imagem e a device tree fornecidas no projeto. Depois
 
 # Init Program
 
-O Kernel busca por um executável em /sbin/init, se achar executa ela com PDID=1, esse programa nunca pode retornar, se o fizer vai causar Kernel Panic.  
-Você pode editar e reompilar o init desse projeto, para isso entre na pasta `sbin` modifique o init.c e execute:
+O Kernel busca por um executável em /sbin/init, se achar executa ele com PDID=1, esse programa nunca pode retornar, se o fizer vai causar Kernel Panic.  
+Você pode editar e recompilar o init desse projeto, para isso entre na pasta `sbin` modifique o init.c e execute:
 ```sh
 arm-linux-gnueabihf-gcc -static -Os -s init.c -o init
 ```
