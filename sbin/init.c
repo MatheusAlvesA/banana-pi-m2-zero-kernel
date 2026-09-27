@@ -1,6 +1,11 @@
 #include <errno.h>
+#include <fcntl.h>
+#include <linux/fb.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/sysinfo.h>
@@ -145,6 +150,78 @@ static void print_random_number(void)
     fclose(file);
 }
 
+static void draw_purple_rectangle(void)
+{
+    struct fb_var_screeninfo screen;
+    struct fb_fix_screeninfo fixed;
+    uint32_t pixel = 0;
+    unsigned int bytes, x, y;
+    unsigned char *buffer;
+    int fd = open("/dev/fb0", O_RDWR);
+
+    if (fd == -1) {
+        perror("/dev/fb0");
+        return;
+    }
+    if (ioctl(fd, FBIOGET_VSCREENINFO, &screen) == -1 ||
+        ioctl(fd, FBIOGET_FSCREENINFO, &fixed) == -1) {
+        perror("Informacoes de /dev/fb0");
+        goto done;
+    }
+    printf("Tela: %ux%u, %u bits por pixel\n"
+           "Resolucao virtual: %ux%u, deslocamento: %u,%u, linha: %u bytes\n",
+           screen.xres, screen.yres, screen.bits_per_pixel,
+           screen.xres_virtual, screen.yres_virtual,
+           screen.xoffset, screen.yoffset, fixed.line_length);
+
+    if (fixed.type != FB_TYPE_PACKED_PIXELS || fixed.visual != FB_VISUAL_TRUECOLOR ||
+        screen.nonstd || screen.grayscale || screen.xres < 200 || screen.yres < 200 ||
+        (screen.bits_per_pixel != 16 && screen.bits_per_pixel != 24 &&
+         screen.bits_per_pixel != 32)) {
+        fputs("Framebuffer: formato ou tamanho nao suportado\n", stderr);
+        goto done;
+    }
+    /* Roxo RGB(128, 0, 128), adaptado aos campos de cor do framebuffer. */
+    struct fb_bitfield fields[] = {screen.red, screen.green, screen.blue, screen.transp};
+    const unsigned int colors[] = {128, 0, 128, 255};
+    for (unsigned int i = 0; i < 4; i++) {
+        if (fields[i].length > 32 || fields[i].offset > 32 ||
+            fields[i].length + fields[i].offset > screen.bits_per_pixel ||
+            fields[i].msb_right) {
+            fputs("Framebuffer: campos de cor nao suportados\n", stderr);
+            goto done;
+        }
+        if (fields[i].length) {
+            pixel |= (uint32_t)((((UINT64_C(1) << fields[i].length) - 1) *
+                                colors[i] / 255) << fields[i].offset);
+        }
+    }
+    bytes = screen.bits_per_pixel / 8;
+    x = (screen.xres - 50) / 2;
+    y = (screen.yres - 50) / 2;
+    uint64_t right = ((uint64_t)screen.xoffset + x + 50) * bytes;
+    uint64_t last_row = (uint64_t)screen.yoffset + y + 49;
+    if (right > fixed.line_length || last_row * fixed.line_length + right > fixed.smem_len) {
+        fputs("Framebuffer: retangulo fora da memoria disponivel\n", stderr);
+        goto done;
+    }
+    buffer = mmap(NULL, fixed.smem_len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (buffer == MAP_FAILED) {
+        perror("mmap /dev/fb0");
+        goto done;
+    }
+    /* Banana Pi usa little-endian; respeite o stride e os offsets virtuais. */
+    for (unsigned int row = 0; row < 50; row++) {
+        for (unsigned int col = 0; col < 50; col++) {
+            memcpy(buffer + (size_t)(screen.yoffset + y + row) * fixed.line_length +
+                   (size_t)(screen.xoffset + x + col) * bytes, &pixel, bytes);
+        }
+    }
+    munmap(buffer, fixed.smem_len);
+done:
+    close(fd);
+}
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -153,6 +230,7 @@ int main(void)
     init_base_virtual_fs();
     print_hardware_info();
     print_random_number();
+    draw_purple_rectangle();
 
     for (;;) {
         pause();

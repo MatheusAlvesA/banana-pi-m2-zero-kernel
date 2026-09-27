@@ -116,6 +116,7 @@ Para exibir as mensagens do kernel pelo HDMI, habilite a emulação de framebuff
 
 ```sh
 ./scripts/config --enable DRM_FBDEV_EMULATION \
+                 --enable FB_DEVICE \
                  --enable FRAMEBUFFER_CONSOLE \
                  --enable DRM_CLIENT_DEFAULT_FBDEV
 
