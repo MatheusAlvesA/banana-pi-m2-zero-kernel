@@ -77,3 +77,19 @@ Agora copie o conteúdo da pasta boot desse projeto para a partição `main` do 
 essa pasta contém a device tree e também o kernel linux compilado.  
 
 Com isso feito, basta colocar o SDCard e observe a placa dar boot no Kernel linux.
+
+# O Kernel
+
+Essa etapa é totalmente opcional visto que a pasta /boot já contém uma build do kernel e a device tree  
+mas se mesmo assim você quer fazer o processo completo, comece baixando o kernel e buildando a device tree:  
+```sh
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+cd linux/
+git checkout v7.2
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabihf-
+make sunxi_defconfig
+make allwinner/sun8i-h2-plus-bananapi-m2-zero.dtb
+```
+Então copie o arquivo em `linux/arch/arm/boot/dts/allwinner/sun8i-h2-plus-bananapi-m2-zero.dtb` para `boot/dtb`  
+Com isso, agora você tem uma device tree que descreve o hardware construida e pronta para usar.
