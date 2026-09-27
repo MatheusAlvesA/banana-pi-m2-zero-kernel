@@ -159,5 +159,10 @@ Perceba que o `-static` está presente, ele é necessário, já que nosso sistem
 
 Na pasta `bin` existe um programa chamado start.c. O programa init automaticamente procura por um executável em /bin/start e o executa se encontrar.  
 Dessa forma, se quiser escrever um programa customizado sem precisar lidar com a inicialização do linux, apenas modifique, faça a build e então  
-copie a pasta bin para o cartão de memória. Essa etapa é totalmente opcioanl, na pasta do projeto já existe um programa básico para servir de placeholder.
+copie a pasta bin para o cartão de memória. Essa etapa é totalmente opcional.
 
+O exemplo limpa a tela após 5 segundos e passa a piscar o LED vermelho da placa,
+com 1 segundo aceso e 1 segundo apagado. Ele escreve em
+`/sys/class/leds/bananapi-m2-zero:red:pwr/brightness`, usando o driver de LEDs
+do Linux. O `init` já monta `/sys` antes de executar o programa. A configuração
+local do kernel habilita `CONFIG_LEDS_GPIO=y` e `CONFIG_LEDS_CLASS=y`.
