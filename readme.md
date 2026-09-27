@@ -107,23 +107,9 @@ Para exibir as mensagens do kernel pelo HDMI, habilite a emulação de framebuff
 ./scripts/config --enable DRM_FBDEV_EMULATION \
                  --enable FRAMEBUFFER_CONSOLE \
                  --enable DRM_CLIENT_DEFAULT_FBDEV
-```
-
-Configure também uma reserva de 128 MiB de CMA, a memória contígua usada, entre outras coisas, pelos buffers gráficos. No teste desta build na Banana Pi M2 Zero, o vídeo só funcionou após aumentar a reserva padrão de 16 MiB para 128 MiB:
-
-```sh
-./scripts/config --enable CMA \
-                 --enable DMA_CMA \
-                 --set-val CMA_SIZE_MBYTES 128 \
-                 --enable CMA_SIZE_SEL_MBYTES \
-                 --disable CMA_SIZE_SEL_PERCENTAGE \
-                 --disable CMA_SIZE_SEL_MIN \
-                 --disable CMA_SIZE_SEL_MAX
 
 make olddefconfig
 ```
-
-Os 128 MiB serão o padrão compilado; não é necessário adicionar `cma=128M` aos argumentos de boot. Caso exista um argumento `cma=...`, ele terá prioridade sobre esse padrão.
 
 Agora compile o kernel e a device tree da placa, mantendo as variáveis `ARCH` e `CROSS_COMPILE` exportadas acima. Não execute `make sunxi_defconfig` novamente depois dos ajustes, pois isso substituiria a configuração:
 

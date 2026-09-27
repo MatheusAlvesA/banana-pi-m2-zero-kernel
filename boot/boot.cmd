@@ -11,7 +11,7 @@ setenv devnum ${mmc_bootdev}
 setenv rootdev "/dev/mmcblk${mmc_bootdev}p1"
 
 setenv consoleargs "console=ttyS0,115200 console=tty1"
-setenv bootargs "root=${rootdev} rootwait rootfstype=${rootfstype} ${consoleargs} consoleblank=0 loglevel=${verbosity} ubootpart=${partuuid} ubootsource=${devtype}"
+setenv bootargs "root=${rootdev} rootwait rootfstype=${rootfstype} ${consoleargs} consoleblank=0 loglevel=${verbosity} ubootpart=${partuuid} ubootsource=${devtype} cma=128M"
 
 echo "Carregando Kernel em memória..."
 load ${devtype} ${devnum} ${kernel_addr_r} ${prefix}zImage
