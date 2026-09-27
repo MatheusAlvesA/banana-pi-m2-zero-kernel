@@ -127,6 +127,24 @@ static void print_hardware_info(void)
     puts("------------------------------\n");
 }
 
+static void print_random_number(void)
+{
+    FILE *file = fopen("/dev/random", "rb");
+    unsigned int number;
+
+    if (file == NULL) {
+        perror("/dev/random");
+        return;
+    }
+
+    if (fread(&number, sizeof(number), 1, file) == 1)
+        printf("Numero aleatorio: %u\n", number);
+    else
+        fputs("Falha ao ler /dev/random\n", stderr);
+
+    fclose(file);
+}
+
 int main(void)
 {
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -134,6 +152,7 @@ int main(void)
 
     init_base_virtual_fs();
     print_hardware_info();
+    print_random_number();
 
     for (;;) {
         pause();
