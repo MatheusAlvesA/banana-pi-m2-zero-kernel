@@ -1,7 +1,0 @@
-verbosity=1
-bootlogo=false
-console=both
-disp_mode=1920x1080p60
-overlay_prefix=sun8i-h3
-rootdev=UUID=ea0f44e9-e27c-4436-942c-86af5d44f881
-rootfstype=ext4

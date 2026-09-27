@@ -78,6 +78,16 @@ essa pasta contém a device tree e também o kernel linux compilado.
 
 Com isso feito, basta colocar o SDCard e observe a placa dar boot no Kernel linux.
 
+# Boot Script
+
+O arquivo `boot/boot.scr` é versão compilada de `boot/boot.cmd`, um script executado pelo U-boot automaticamente para executar o boot do Kernel.  
+Se deseja customizar isso, edite o `boot.cmd` e execute:
+```sh
+./u-boot/tools/mkimage -C none -A arm -T script -d boot/boot.cmd boot/boot.scr
+```
+Com isso, o script de boot agora é a versão customizada que você criou
+
+
 # O Kernel
 
 Essa etapa é opcional, pois a pasta `boot/` do projeto já contém uma imagem do kernel e a device tree. Para compilar sua própria versão, baixe o código do Linux a partir da raiz deste projeto e configure a arquitetura ARM:
