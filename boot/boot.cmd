@@ -20,6 +20,12 @@ echo "Carregando Device tree"
 load ${devtype} ${devnum} ${fdt_addr_r} ${prefix}dtb/${fdtfile}
 fdt addr ${fdt_addr_r}
 
+# Capacidade relativa igual nos quatro Cortex-A7 (1024 nao e frequencia).
+fdt resize 0x100 || exit
+setenv dt_cpu_index
+for dt_cpu_index in 0 1 2 3; do
+    fdt set /cpus/cpu@${dt_cpu_index} capacity-dmips-mhz <0x400> || exit
+done
+
 echo "Iniciando boot do Kernel..."
 bootz ${kernel_addr_r} - ${fdt_addr_r}
-

@@ -89,6 +89,9 @@ Se deseja customizar isso, edite o `boot.cmd` e execute:
 ```
 Com isso, o script de boot agora é a versão customizada que você criou
 
+O script também informa `capacity-dmips-mhz = <1024>` para os quatro
+Cortex-A7 da Banana Pi M2 Zero no device tree em memória. Esse valor representa
+capacidade relativa igual entre os núcleos, não uma frequência em MHz.
 
 # O Kernel
 
@@ -124,6 +127,7 @@ Ainda dentro da pasta `linux/`, copie os arquivos gerados para a pasta `boot/` d
 ```sh
 cp arch/arm/boot/zImage ../boot/zImage
 cp arch/arm/boot/dts/allwinner/sun8i-h2-plus-bananapi-m2-zero.dtb ../boot/dtb/
+sh ../boot/fix-cpu-capacity.sh
 ```
 
 Esses comandos substituem a imagem e a device tree fornecidas no projeto. Depois, copie os arquivos atualizados para os mesmos locais no SDCard usados pelo script de boot.
@@ -137,4 +141,3 @@ Você pode editar e reompilar o init desse projeto, para isso entre na pasta `sb
 arm-linux-gnueabihf-gcc -static -Os -s init.c -o init
 ```
 Perceba que o `-static` está presente, ele é necessário, já que nosso sistema de arquivos não tem nenhuma lib disponível para usar.
-
