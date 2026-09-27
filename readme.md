@@ -5,7 +5,7 @@ realizar o boot do Kernel linux na placa Banana Pi M2 Zero. Esse tutorial assume
 
 # U-Boot
 
-O bootloader utilizado é o [https://docs.u-boot-project.org/en/v2026.07/build/index.html](U-Boot)  
+O bootloader utilizado é o [U-Boot](https://docs.u-boot-project.org/en/v2026.07/build/index.html)  
 Um dos bootloaders mais populares em SoCs arm.
 
 Faça download do código via git:  
@@ -93,6 +93,12 @@ O script também informa `capacity-dmips-mhz = <1024>` para os quatro
 Cortex-A7 da Banana Pi M2 Zero no device tree em memória. Esse valor representa
 capacidade relativa igual entre os núcleos, não uma frequência em MHz.
 
+Para a GPU, o script liga `mali-supply` ao regulador fixo `vcc1v2` e informa
+`opp-microvolt = <1200000>` nos quatro pontos de operação. Isso corrige a
+mensagem do Lima `error -ENODEV: _opp_set_regulators: no regulator (mali) found`
+sem desabilitar o controle de frequência da GPU. A alimentação de 1,2 V está
+descrita no [esquema da placa, página 3](https://linux-sunxi.org/images/2/2f/BPi-M2-Zero-schematic_V1_0-R.pdf).
+
 # O Kernel
 
 Essa etapa é opcional, pois a pasta `boot/` do projeto já contém uma imagem do kernel e a device tree. Para compilar sua própria versão, baixe o código do Linux a partir da raiz deste projeto e configure a arquitetura ARM:
@@ -127,7 +133,6 @@ Ainda dentro da pasta `linux/`, copie os arquivos gerados para a pasta `boot/` d
 ```sh
 cp arch/arm/boot/zImage ../boot/zImage
 cp arch/arm/boot/dts/allwinner/sun8i-h2-plus-bananapi-m2-zero.dtb ../boot/dtb/
-sh ../boot/fix-cpu-capacity.sh
 ```
 
 Esses comandos substituem a imagem e a device tree fornecidas no projeto. Depois, copie os arquivos atualizados para os mesmos locais no SDCard usados pelo script de boot.
