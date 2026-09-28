@@ -1,14 +1,30 @@
 # ENV Config
 setenv verbosity "4"
 setenv rootfstype "ext4"
-setenv devnum "0"
 
 echo "Iniciando Boot Script!"
 
-# Carregando id da partição, numero e caminho da partição de boot
-part uuid mmc ${devnum}:1 partuuid;
-setenv devnum ${mmc_bootdev}
-setenv rootdev "/dev/mmcblk${mmc_bootdev}p1"
+# Preserve o dispositivo selecionado pelo boot automatico do U-Boot.
+if test -z "${devtype}"; then
+    setenv devtype mmc
+fi
+if test -z "${devnum}"; then
+    setenv devnum ${mmc_bootdev}
+fi
+if test -z "${devnum}"; then
+    setenv devnum 0
+fi
+
+# Neste projeto, boot e raiz ficam na primeira particao do mesmo cartao.
+# A numeracao MMC do Linux nao precisa coincidir com a do U-Boot.
+setenv partuuid
+if part uuid ${devtype} ${devnum}:1 partuuid; then
+    setenv rootdev "PARTUUID=${partuuid}"
+else
+    echo "ERRO: nao foi possivel identificar a particao raiz"
+    exit
+fi
+echo "Particao raiz: ${rootdev}"
 
 setenv consoleargs "console=ttyS0,115200 console=tty1"
 setenv bootargs "root=${rootdev} rootwait rootfstype=${rootfstype} ${consoleargs} consoleblank=0 loglevel=${verbosity} ubootpart=${partuuid} ubootsource=${devtype} cma=128M"

@@ -95,6 +95,11 @@ Se deseja customizar isso, edite o `boot.cmd` e execute:
 ```
 Com isso, o script de boot agora é a versão customizada que você criou
 
+A raiz é selecionada com `root=PARTUUID=...`, obtido da primeira partição
+do dispositivo usado pelo U-Boot. Isso evita depender da correspondência
+entre os números MMC do U-Boot e do Linux. O projeto mantém `/boot` e
+`/sbin/init` nessa mesma partição.
+
 O script também informa `capacity-dmips-mhz = <1024>` para os quatro
 Cortex-A7 da Banana Pi M2 Zero no device tree em memória. Esse valor representa
 capacidade relativa igual entre os núcleos, não uma frequência em MHz.
