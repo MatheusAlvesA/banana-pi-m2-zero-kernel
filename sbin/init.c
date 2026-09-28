@@ -223,10 +223,10 @@ done:
     close(fd);
 }
 
-static void start_program(void)
+static pid_t start_program(void)
 {
     if (access("/bin/start", F_OK) == -1) {
-        return;
+        return -1;
     }
 
     pid_t pid = fork();
@@ -238,6 +238,7 @@ static void start_program(void)
         perror("exec /bin/start");
         _exit(127);
     }
+    return pid;
 }
 
 int main(void)
@@ -249,16 +250,26 @@ int main(void)
     print_hardware_info();
     print_random_number();
     draw_purple_rectangle();
-    start_program();
+    pid_t start_pid = start_program();
 
     for (;;) {
-        if (wait(NULL) == -1) {
+        int status;
+        pid_t pid = wait(&status);
+        if (pid == -1) {
             if (errno == EINTR)
                 continue;
             if (errno != ECHILD)
                 perror("wait");
             /* Sem filhos, evite consumir CPU enquanto mantem o init vivo. */
             sleep(1);
+        } else if (pid == start_pid) {
+            if (WIFEXITED(status))
+                printf("\n/bin/start finalizou com codigo de saida %d\n",
+                       WEXITSTATUS(status));
+            else if (WIFSIGNALED(status))
+                printf("\n/bin/start finalizou pelo sinal %d\n",
+                       WTERMSIG(status));
+            start_pid = -1;
         }
     }
 }
