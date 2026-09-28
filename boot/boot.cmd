@@ -26,7 +26,7 @@ else
 fi
 echo "Particao raiz: ${rootdev}"
 
-setenv consoleargs "console=ttyS0,115200 console=tty1"
+setenv consoleargs "earlycon console=ttyS0,115200 console=tty1"
 setenv bootargs "root=${rootdev} rootwait rootfstype=${rootfstype} ${consoleargs} consoleblank=0 loglevel=${verbosity} ubootpart=${partuuid} ubootsource=${devtype} cma=128M"
 
 echo "Carregando Kernel em memória..."
