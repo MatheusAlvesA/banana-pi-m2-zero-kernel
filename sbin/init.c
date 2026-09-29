@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <linux/fb.h>
+#include <linux/vt.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -35,6 +36,22 @@ static void init_base_virtual_fs(void)
     mount_virtual_fs("/sys", "sysfs", 0755);
     mount_virtual_fs("/dev", "devtmpfs", 0755);
     mount_virtual_fs("/tmp", "tmpfs", 01777);
+}
+
+static void config_fb_screen(void)
+{
+    int fd = open("/dev/tty0", O_RDWR | O_NOCTTY | O_CLOEXEC);
+
+    if (fd == -1) {
+        perror("/dev/tty0");
+        return;
+    }
+
+    /* Bloqueio global: Ctrl+Alt+Fn nao pode trocar o VT ativo. */
+    if (ioctl(fd, VT_LOCKSWITCH, 0) == -1)
+        perror("VT_LOCKSWITCH");
+
+    close(fd);
 }
 
 static int read_number(const char *path, long *value)
@@ -247,6 +264,7 @@ int main(void)
     puts("Seu Banana Pi completou o boot do Kernel Linux!");
 
     init_base_virtual_fs();
+    config_fb_screen();
     print_hardware_info();
     print_random_number();
     draw_purple_rectangle();
